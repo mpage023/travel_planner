@@ -480,7 +480,7 @@ function load() {
   document.getElementById('tripName').value = state.tripName || 'My Adventure';
   render();
 }
-function saveTripMeta() { state.tripName = document.getElementById('tripName').value; save(); }
+function saveTripMeta() { state.tripName = document.getElementById('tripName').value; scheduleSave(); }
 
 // ── UTILS ──
 function uid() { return Math.random().toString(36).slice(2) + Date.now().toString(36); }
@@ -661,13 +661,13 @@ function saveItem() {
     state.items.push(item);
   }
 
-  save(); render(); closeModal();
+  scheduleSave(); render(); closeModal();
   showToast(editingId ? 'Item updated!' : 'Item added!');
 }
 
 function deleteItem(id) {
   state.items = state.items.filter(i => i.id !== id);
-  save(); render(); showToast('Item removed.');
+  scheduleSave(); render(); showToast('Item removed.');
 }
 
 // ── RENDERING ──
@@ -929,7 +929,7 @@ function importData() { document.getElementById('importFile').click(); }
 function handleImport(e) {
   const file = e.target.files[0]; if (!file) return;
   const reader = new FileReader();
-  reader.onload = ev => { try { state = JSON.parse(ev.target.result); document.getElementById('tripName').value = state.tripName||''; save(); render(); showToast('Trip imported!'); } catch { showToast('Invalid file.'); } };
+  reader.onload = ev => { try { state = JSON.parse(ev.target.result); document.getElementById('tripName').value = state.tripName||''; scheduleSave(); render(); showToast('Trip imported!'); } catch { showToast('Invalid file.'); } };
   reader.readAsText(file); e.target.value = '';
 }
 
@@ -941,7 +941,47 @@ function showToast(msg) {
 }
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-load();
+
+ // ── SYNC ──
+let syncTimeout = null;
+
+async function syncLoad() {
+  try {
+    const res = await fetch(SYNC_URL);
+    const remote = await res.json();
+    if (remote && remote.items) {
+      state = remote;
+      document.getElementById('tripName').value = state.tripName || '';
+      render();
+    }
+  } catch(e) {
+    console.warn('Sync load failed, falling back to local', e);
+  }
+  render();
+}
+
+async function syncSave() {
+  save(); // always keep local copy too
+  try {
+    await fetch(SYNC_URL, {
+      method: 'POST',
+      body: JSON.stringify(state),
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch(e) {
+    console.warn('Sync save failed', e);
+  }
+}
+
+function scheduleSave() {
+  save();
+  clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(syncSave, 1500);
+}
+
+// ── INIT ──
+syncLoad(); 
+ ;
 </script>
 </body>
 </html>
