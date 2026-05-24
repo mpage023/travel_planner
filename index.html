@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voyage — Travel Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Cream */
+    --cream: #F6F4EF;
+    --cream-dark: #EAE6DC;
+    --cream-mid: #F0EDE5;
+    /* Slate blue */
+    --slate: #3D5A73;
+    --slate-light: #5C7A93;
+    --slate-pale: #D4E2ED;
+    --slate-dark: #263E52;
+    --slate-muted: #4A6880;
+    /* Sea green */
+    --green: #3A8C72;
+    --green-light: #52A98C;
+    --green-pale: #C8E8DF;
+    --green-dark: #2A6B56;
+    /* Neutrals */
+    --text: #1C2B36;
+    --text-mid: #3A5060;
+    --text-light: #6B8496;
+    --border: #D0DBE4;
+    --shadow: 0 2px 12px rgba(28,43,54,0.08);
+    --shadow-lg: 0 8px 32px rgba(28,43,54,0.14);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--slate-dark);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 16px rgba(28,43,54,0.35);
+  }
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--cream);
+    letter-spacing: 0.02em;
+  }
+  .logo span { color: var(--green-light); }
+  .header-actions { display: flex; gap: 0.75rem; align-items: center; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 1.1rem; border-radius: 8px; border: none;
+    font-family: 'DM Sans', sans-serif; font-size: 0.875rem; font-weight: 500;
+    cursor: pointer; transition: all 0.18s ease; text-decoration: none;
+  }
+  .btn-primary { background: var(--slate); color: #fff; }
+  .btn-primary:hover { background: var(--slate-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(61,90,115,0.4); }
+  .btn-secondary { background: var(--cream-dark); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--border); }
+  .btn-ghost { background: transparent; color: var(--cream); border: 1px solid rgba(255,255,255,0.25); }
+  .btn-ghost:hover { background: rgba(255,255,255,0.1); }
+  .btn-green { background: var(--green); color: #fff; }
+  .btn-green:hover { background: var(--green-dark); transform: translateY(-1px); }
+  .btn-sm { padding: 0.3rem 0.7rem; font-size: 0.8rem; }
+
+  /* ── LAYOUT ── */
+  .app-container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  /* ── TRIP META ── */
+  .trip-header {
+    background: linear-gradient(135deg, var(--slate-dark) 0%, var(--slate) 60%, var(--slate-muted) 100%);
+    border-radius: 16px; padding: 2rem 2.5rem; margin-bottom: 2rem;
+    color: var(--cream); position: relative; overflow: hidden;
+  }
+  .trip-header::before {
+    content: '✈'; position: absolute; right: 2rem; top: 1rem;
+    font-size: 6rem; opacity: 0.07; transform: rotate(20deg);
+  }
+  .trip-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+  .trip-name {
+    font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700;
+    color: var(--cream); cursor: pointer; border: none; background: transparent; width: 100%;
+  }
+  .trip-name:focus { outline: 2px solid var(--green-light); border-radius: 4px; }
+  .trip-subtitle { color: var(--slate-pale); font-size: 0.9rem; margin-top: 0.25rem; opacity: 0.85; }
+  .trip-stats { display: flex; gap: 2rem; margin-top: 1.25rem; flex-wrap: wrap; }
+  .stat { text-align: center; }
+  .stat-val { font-size: 1.5rem; font-weight: 600; color: var(--green-light); }
+  .stat-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.7; }
+
+  /* ── SECTION TITLES ── */
+  .section-title {
+    font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 600;
+    color: var(--text); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.6rem;
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* ── TYPE TABS ── */
+  .type-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+  .type-tab {
+    padding: 0.4rem 1rem; border-radius: 20px; border: 1.5px solid var(--border);
+    background: var(--cream-mid); cursor: pointer; font-size: 0.875rem; font-weight: 500;
+    color: var(--text-mid); transition: all 0.15s;
+  }
+  .type-tab:hover { border-color: var(--slate); color: var(--slate); }
+  .type-tab.active { background: var(--slate); border-color: var(--slate); color: #fff; }
+
+  /* ── FORM ── */
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; }
+  .form-group { display: flex; flex-direction: column; gap: 0.3rem; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-size: 0.78rem; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.05em; }
+  input, select, textarea {
+    padding: 0.55rem 0.85rem; border: 1.5px solid var(--border); border-radius: 8px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem; color: var(--text);
+    background: var(--cream-mid); transition: border-color 0.15s;
+    width: 100%;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--slate); background: #fff; }
+  textarea { resize: vertical; min-height: 70px; }
+  select { cursor: pointer; }
+  .form-actions { display: flex; gap: 0.75rem; margin-top: 1rem; justify-content: flex-end; }
+  .form-section-label {
+    font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--slate); border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
+    margin: 1rem 0 0.5rem; grid-column: 1 / -1;
+  }
+
+  /* ── DAY CARDS ── */
+  .days-section { display: flex; flex-direction: column; gap: 1rem; }
+
+  .day-card {
+    background: #fff; border: 1px solid var(--border); border-radius: 14px;
+    box-shadow: var(--shadow); overflow: hidden; transition: box-shadow 0.2s;
+  }
+  .day-card:hover { box-shadow: var(--shadow-lg); }
+
+  .day-header {
+    padding: 1rem 1.5rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between;
+    background: linear-gradient(90deg, var(--cream-mid) 0%, var(--cream) 100%);
+    border-bottom: 1px solid transparent;
+    transition: background 0.15s;
+    user-select: none;
+  }
+  .day-card.open .day-header { border-bottom-color: var(--border); background: var(--slate-pale); }
+  .day-header-left { display: flex; align-items: center; gap: 1rem; }
+  .day-badge {
+    background: var(--slate); color: #fff; border-radius: 8px;
+    padding: 0.25rem 0.7rem; font-size: 0.8rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap;
+  }
+  .day-date {
+    font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 600;
+    color: var(--text);
+  }
+  .day-summary { font-size: 0.8rem; color: var(--text-light); margin-top: 0.1rem; }
+  .day-header-right { display: flex; align-items: center; gap: 0.75rem; }
+  .item-count {
+    background: var(--green-pale); color: var(--green-dark); border-radius: 12px;
+    padding: 0.2rem 0.6rem; font-size: 0.78rem; font-weight: 600;
+  }
+  .chevron { color: var(--text-light); transition: transform 0.25s; font-size: 1rem; }
+  .day-card.open .chevron { transform: rotate(180deg); }
+
+  .day-body { padding: 0; max-height: 0; overflow: hidden; transition: max-height 0.35s ease; }
+  .day-card.open .day-body { max-height: 6000px; }
+  .day-body-inner { padding: 1.25rem 1.5rem; }
+
+  /* ── TIMELINE ── */
+  .timeline { position: relative; }
+  .timeline-item { display: flex; gap: 1rem; position: relative; }
+
+  .timeline-left {
+    display: flex; flex-direction: column; align-items: center;
+    width: 14px; flex-shrink: 0; padding-top: 0.25rem;
+  }
+  .timeline-dot {
+    width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
+    border: 2.5px solid #fff; box-shadow: 0 0 0 2px currentColor;
+  }
+  .dot-flight { color: var(--slate); background: var(--slate); }
+  .dot-hotel { color: #C07A30; background: #C07A30; }
+  .dot-hotel-morning { color: #A06020; background: #A06020; }
+  .dot-transport { color: var(--green-dark); background: var(--green-dark); }
+  .dot-activity { color: var(--green); background: var(--green); }
+
+  .timeline-line { flex: 1; width: 2px; background: var(--border); min-height: 16px; margin: 3px 0; }
+
+  .timeline-content-wrap { flex: 1; padding-bottom: 0.75rem; }
+
+  .timeline-content {
+    background: var(--cream-mid); border: 1px solid var(--border);
+    border-radius: 10px; padding: 0.75rem 1rem;
+    transition: box-shadow 0.15s;
+  }
+  .timeline-content:hover { box-shadow: 0 2px 8px rgba(28,43,54,0.1); }
+  .timeline-content.hotel-card   { border-left: 3px solid #C07A30; }
+  .timeline-content.flight-card  { border-left: 3px solid var(--slate); }
+  .timeline-content.transport-card { border-left: 3px solid var(--green-dark); }
+  .timeline-content.activity-card { border-left: 3px solid var(--green); }
+
+  .item-type-badge {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em;
+    padding: 0.15rem 0.5rem; border-radius: 4px; margin-bottom: 0.4rem;
+  }
+  .badge-flight    { background: var(--slate-pale); color: var(--slate-dark); }
+  .badge-hotel     { background: #FDECD8; color: #8A4A10; }
+  .badge-transport { background: var(--green-pale); color: var(--green-dark); }
+  .badge-activity  { background: var(--green-pale); color: var(--green-dark); }
+
+  /* Span pill shown on multi-day items */
+  .span-pill {
+    display: inline-flex; align-items: center; gap: 0.25rem;
+    font-size: 0.68rem; font-weight: 600; padding: 0.1rem 0.45rem; border-radius: 10px;
+    background: var(--slate-pale); color: var(--slate-dark); margin-left: 0.4rem; vertical-align: middle;
+  }
+
+  .item-name {
+    font-weight: 600; font-size: 0.95rem; color: var(--text);
+    display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+  }
+  .item-name-left { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+  .item-detail { font-size: 0.82rem; color: var(--text-light); margin-top: 0.25rem; }
+  .item-detail span { display: inline-flex; align-items: center; gap: 0.2rem; margin-right: 0.75rem; }
+  .item-actions { display: flex; gap: 0.3rem; opacity: 0; transition: opacity 0.15s; flex-shrink: 0; }
+  .timeline-content:hover .item-actions { opacity: 1; }
+  .delete-btn {
+    background: #FEE2E2; color: #DC2626; border: none; border-radius: 5px;
+    padding: 0.2rem 0.5rem; cursor: pointer; font-size: 0.75rem; font-weight: 600;
+  }
+  .delete-btn:hover { background: #DC2626; color: #fff; }
+  .edit-btn {
+    background: var(--slate-pale); color: var(--slate-dark); border: none; border-radius: 5px;
+    padding: 0.2rem 0.5rem; cursor: pointer; font-size: 0.75rem; font-weight: 600;
+  }
+  .edit-btn:hover { background: var(--slate); color: #fff; }
+  .item-link { font-size: 0.8rem; color: var(--slate); margin-top: 0.3rem; }
+  .item-link a { color: var(--slate); text-decoration: underline; }
+
+  .hotel-morning { background: linear-gradient(90deg, #FEF3E8, var(--cream-mid)); border: 1px dashed #C07A30; }
+  .hotel-evening { background: linear-gradient(90deg, #FEF3E8, var(--cream-mid)); border: 1px dashed #C07A30; }
+
+  .flight-route { display: flex; align-items: center; gap: 0.4rem; font-size: 0.95rem; }
+  .route-arrow { color: var(--slate-light); }
+
+  /* ── UNSCHEDULED ── */
+  .unscheduled-section { margin-top: 2rem; }
+  .unscheduled-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.75rem; }
+  .unscheduled-card { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 1rem; box-shadow: var(--shadow); }
+
+  /* ── EMPTY STATE ── */
+  .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-light); }
+  .empty-state-icon { font-size: 3rem; margin-bottom: 0.75rem; opacity: 0.4; }
+  .empty-state p { font-size: 0.9rem; }
+  .no-items { font-size: 0.85rem; color: var(--text-light); text-align: center; padding: 1rem; font-style: italic; }
+
+  /* ── MODAL ── */
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(28,43,54,0.55);
+    z-index: 200; display: flex; align-items: center; justify-content: center;
+    padding: 1rem; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  }
+  .modal-backdrop.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: #fff; border-radius: 16px; width: 100%; max-width: 620px;
+    max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg);
+    transform: translateY(20px); transition: transform 0.25s ease;
+  }
+  .modal-backdrop.open .modal { transform: translateY(0); }
+  .modal-header {
+    padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; background: #fff; z-index: 1;
+  }
+  .modal-title { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; }
+  .modal-close {
+    background: var(--cream-dark); border: none; border-radius: 6px;
+    padding: 0.3rem 0.6rem; cursor: pointer; font-size: 1rem; color: var(--text-light);
+  }
+  .modal-close:hover { background: var(--border); }
+  .modal-body { padding: 1.5rem; }
+
+  /* ── MISC ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--cream-mid); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .toast {
+    position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 999;
+    background: var(--slate-dark); color: var(--cream); border-radius: 10px;
+    padding: 0.75rem 1.25rem; font-size: 0.875rem; font-weight: 500;
+    box-shadow: var(--shadow-lg); transform: translateY(100px); opacity: 0;
+    transition: all 0.3s ease;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success::before { content: '✓  '; color: var(--green-light); }
+
+  @media (max-width: 600px) {
+    .app-container { padding: 1rem; }
+    .trip-header { padding: 1.25rem; }
+    .form-grid { grid-template-columns: 1fr; }
+    .trip-stats { gap: 1rem; }
+    .day-body-inner { padding: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Voya<span>ge</span></div>
+  <div class="header-actions">
+    <button class="btn btn-ghost btn-sm" onclick="exportData()">⬇ Export</button>
+    <button class="btn btn-ghost btn-sm" onclick="importData()">⬆ Import</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)">
+  </div>
+</header>
+
+<div class="app-container">
+
+  <!-- Trip Header -->
+  <div class="trip-header">
+    <div class="trip-title-row">
+      <div style="flex:1">
+        <input class="trip-name" id="tripName" value="My Adventure" placeholder="Trip Name" oninput="saveTripMeta()"/>
+        <div class="trip-subtitle" id="tripSubtitle">Click to rename your trip</div>
+      </div>
+      <button class="btn btn-green" onclick="openAddModal()">+ Add Item</button>
+    </div>
+    <div class="trip-stats">
+      <div class="stat"><div class="stat-val" id="statDays">0</div><div class="stat-label">Days</div></div>
+      <div class="stat"><div class="stat-val" id="statFlights">0</div><div class="stat-label">Flights</div></div>
+      <div class="stat"><div class="stat-val" id="statHotels">0</div><div class="stat-label">Hotels</div></div>
+      <div class="stat"><div class="stat-val" id="statActivities">0</div><div class="stat-label">Activities</div></div>
+    </div>
+  </div>
+
+  <!-- Days -->
+  <div id="daysContainer"></div>
+
+  <!-- Unscheduled -->
+  <div class="unscheduled-section" id="unscheduledSection" style="display:none">
+    <div class="section-title">📋 Unscheduled Items</div>
+    <div class="unscheduled-grid" id="unscheduledGrid"></div>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-backdrop" id="modal" onclick="closeModalOnBackdrop(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Add Item</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="type-tabs" id="modalTypeTabs">
+        <div class="type-tab active" onclick="setModalType('flight')"    data-type="flight">✈ Flight</div>
+        <div class="type-tab"        onclick="setModalType('hotel')"     data-type="hotel">🏨 Hotel</div>
+        <div class="type-tab"        onclick="setModalType('transport')" data-type="transport">🚌 Transport</div>
+        <div class="type-tab"        onclick="setModalType('activity')"  data-type="activity">🎭 Activity</div>
+      </div>
+
+      <!-- Common date/link row -->
+      <div class="form-grid" style="margin-bottom:0.75rem">
+        <div class="form-group">
+          <label>Start Date</label>
+          <input type="date" id="fDateStart">
+        </div>
+        <div class="form-group">
+          <label>End Date <span style="font-weight:400;text-transform:none">(optional)</span></label>
+          <input type="date" id="fDateEnd">
+        </div>
+        <div class="form-group full">
+          <label>Link / URL (optional)</label>
+          <input type="url" id="fLink" placeholder="https://...">
+        </div>
+      </div>
+
+      <!-- FLIGHT -->
+      <div id="flightFields">
+        <div class="form-grid">
+          <div class="form-group"><label>Depart From</label><input id="fFlightFrom" placeholder="e.g. Sydney (SYD)"></div>
+          <div class="form-group"><label>Arrive To</label><input id="fFlightTo" placeholder="e.g. London (LHR)"></div>
+          <div class="form-group"><label>Departure Time</label><input type="time" id="fFlightDepTime"></div>
+          <div class="form-group"><label>Arrival Time</label><input type="time" id="fFlightArrTime"></div>
+          <div class="form-group"><label>Airline</label><input id="fFlightAirline" placeholder="e.g. Qantas"></div>
+          <div class="form-group"><label>Flight Number</label><input id="fFlightNum" placeholder="e.g. QF1"></div>
+        </div>
+      </div>
+
+      <!-- HOTEL -->
+      <div id="hotelFields" style="display:none">
+        <div class="form-grid">
+          <div class="form-group full"><label>Hotel Name</label><input id="fHotelName" placeholder="e.g. The Grand Hotel"></div>
+          <div class="form-group full"><label>Address</label><input id="fHotelAddr" placeholder="Street, City, Country"></div>
+          <div class="form-group"><label>Booking Reference</label><input id="fHotelRef" placeholder="e.g. ABC123"></div>
+          <div class="form-group"><label>Check-in Time</label><input type="time" id="fHotelCheckinTime"></div>
+          <div class="form-group"><label>Check-out Time</label><input type="time" id="fHotelCheckoutTime"></div>
+        </div>
+        <p style="font-size:0.8rem;color:var(--text-light);margin-top:0.5rem">ℹ Check-in date = Start Date · Check-out date = End Date</p>
+      </div>
+
+      <!-- TRANSPORT -->
+      <div id="transportFields" style="display:none">
+        <div class="form-grid">
+          <div class="form-group"><label>Mode</label>
+            <select id="fTransMode">
+              <option>Train</option><option>Bus</option><option>Ferry</option>
+              <option>Taxi / Rideshare</option><option>Car Rental</option><option>Shuttle</option><option>Other</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Booking Reference</label><input id="fTransRef" placeholder="e.g. TKT-9921"></div>
+          <div class="form-group"><label>Depart From</label><input id="fTransFrom" placeholder="Departure location"></div>
+          <div class="form-group"><label>Arrive To</label><input id="fTransTo" placeholder="Arrival location"></div>
+          <div class="form-group"><label>Departure Time</label><input type="time" id="fTransDepTime"></div>
+          <div class="form-group"><label>Arrival Time</label><input type="time" id="fTransArrTime"></div>
+        </div>
+      </div>
+
+      <!-- ACTIVITY -->
+      <div id="activityFields" style="display:none">
+        <div class="form-grid">
+          <div class="form-group"><label>Type</label>
+            <select id="fActType">
+              <option>Activity</option><option>Restaurant</option><option>Event</option>
+              <option>Museum</option><option>Tour</option><option>Shopping</option><option>Other</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Name</label><input id="fActName" placeholder="e.g. Museum of Natural History"></div>
+          <div class="form-group"><label>Start Time</label><input type="time" id="fActTime"></div>
+          <div class="form-group"><label>End Time (optional)</label><input type="time" id="fActEndTime"></div>
+          <div class="form-group"><label>Booking Reference</label><input id="fActRef" placeholder="Optional"></div>
+          <div class="form-group full"><label>Description / Notes</label><textarea id="fActDesc" placeholder="Any details, notes..."></textarea></div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveItem()">Save Item</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ──
+let state = { tripName: 'My Adventure', items: [] };
+let editingId = null;
+let currentModalType = 'flight';
+
+// ── PERSISTENCE ──
+function save() { localStorage.setItem('voyage_v2', JSON.stringify(state)); }
+function load() {
+  const raw = localStorage.getItem('voyage_v2') || localStorage.getItem('voyage_state');
+  if (raw) { try { state = JSON.parse(raw); } catch(e) {} }
+  document.getElementById('tripName').value = state.tripName || 'My Adventure';
+  render();
+}
+function saveTripMeta() { state.tripName = document.getElementById('tripName').value; save(); }
+
+// ── UTILS ──
+function uid() { return Math.random().toString(36).slice(2) + Date.now().toString(36); }
+
+function fmt12(t) {
+  if (!t) return '';
+  const [h, m] = t.split(':').map(Number);
+  if (isNaN(h)) return t;
+  const period = h >= 12 ? 'pm' : 'am';
+  return `${h % 12 || 12}:${String(m).padStart(2,'0')}${period}`;
+}
+function fmtDate(d) {
+  if (!d) return '';
+  const [y, mo, day] = d.split('-');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${parseInt(day)} ${months[parseInt(mo)-1]} ${y}`;
+}
+// Return array of YYYY-MM-DD strings between start and end inclusive
+function dateRange(start, end) {
+  if (!start) return [];
+  const result = [];
+  let cur = new Date(start + 'T00:00:00');
+  const last = end ? new Date(end + 'T00:00:00') : cur;
+  while (cur <= last) {
+    result.push(cur.toISOString().slice(0, 10));
+    cur.setDate(cur.getDate() + 1);
+  }
+  return result;
+}
+function daysBetween(a, b) {
+  if (!a || !b) return 0;
+  return Math.round((new Date(b+'T00:00:00') - new Date(a+'T00:00:00')) / 86400000);
+}
+
+// ── ITEM DATE HELPERS ──
+// Returns the "start date" of any item
+function itemStartDate(item) {
+  if (item.type === 'hotel') return item.dateStart || item.checkin || item.date || null;
+  return item.dateStart || item.date || null;
+}
+// Returns the "end date" of any item (may be null)
+function itemEndDate(item) {
+  if (item.type === 'hotel') return item.dateEnd || item.checkout || null;
+  return item.dateEnd || null;
+}
+// All dates an item should appear on
+function itemDates(item) {
+  const start = itemStartDate(item);
+  const end = itemEndDate(item);
+  return dateRange(start, end);
+}
+
+// ── MODAL ──
+function openAddModal(type='flight') {
+  editingId = null;
+  document.getElementById('modalTitle').textContent = 'Add Item';
+  clearForm();
+  setModalType(type);
+  document.getElementById('modalTypeTabs').style.display = 'flex';
+  document.getElementById('modal').classList.add('open');
+}
+function openEditModal(id) {
+  editingId = id;
+  const item = state.items.find(i => i.id === id);
+  if (!item) return;
+  document.getElementById('modalTitle').textContent = 'Edit Item';
+  document.getElementById('modalTypeTabs').style.display = 'none';
+  clearForm();
+  setModalType(item.type);
+  populateForm(item);
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); editingId = null; }
+function closeModalOnBackdrop(e) { if (e.target === document.getElementById('modal')) closeModal(); }
+
+function setModalType(type) {
+  currentModalType = type;
+  ['flight','hotel','transport','activity'].forEach(t => {
+    document.getElementById(t+'Fields').style.display = t === type ? 'block' : 'none';
+  });
+  document.querySelectorAll('.type-tab').forEach(tab => tab.classList.toggle('active', tab.dataset.type === type));
+}
+
+const FIELD_IDS = ['fDateStart','fDateEnd','fLink','fFlightFrom','fFlightTo','fFlightDepTime','fFlightArrTime',
+  'fFlightAirline','fFlightNum','fHotelName','fHotelAddr','fHotelRef','fHotelCheckinTime','fHotelCheckoutTime',
+  'fTransRef','fTransFrom','fTransTo','fTransDepTime','fTransArrTime','fActName','fActTime','fActEndTime','fActRef','fActDesc'];
+function clearForm() {
+  FIELD_IDS.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.getElementById('fTransMode').value = 'Train';
+  document.getElementById('fActType').value = 'Activity';
+}
+
+function populateForm(item) {
+  document.getElementById('fDateStart').value = itemStartDate(item) || '';
+  document.getElementById('fDateEnd').value   = itemEndDate(item) || '';
+  document.getElementById('fLink').value = item.link || '';
+  if (item.type === 'flight') {
+    document.getElementById('fFlightFrom').value    = item.from || '';
+    document.getElementById('fFlightTo').value      = item.to || '';
+    document.getElementById('fFlightDepTime').value = item.depTime || '';
+    document.getElementById('fFlightArrTime').value = item.arrTime || '';
+    document.getElementById('fFlightAirline').value = item.airline || '';
+    document.getElementById('fFlightNum').value     = item.flightNum || '';
+  } else if (item.type === 'hotel') {
+    document.getElementById('fHotelName').value        = item.name || '';
+    document.getElementById('fHotelAddr').value        = item.address || '';
+    document.getElementById('fHotelRef').value         = item.ref || '';
+    document.getElementById('fHotelCheckinTime').value = item.checkinTime || '';
+    document.getElementById('fHotelCheckoutTime').value= item.checkoutTime || '';
+  } else if (item.type === 'transport') {
+    document.getElementById('fTransMode').value    = item.mode || 'Train';
+    document.getElementById('fTransRef').value     = item.ref || '';
+    document.getElementById('fTransFrom').value    = item.from || '';
+    document.getElementById('fTransTo').value      = item.to || '';
+    document.getElementById('fTransDepTime').value = item.depTime || '';
+    document.getElementById('fTransArrTime').value = item.arrTime || '';
+  } else if (item.type === 'activity') {
+    document.getElementById('fActType').value    = item.actType || 'Activity';
+    document.getElementById('fActName').value    = item.name || '';
+    document.getElementById('fActTime').value    = item.time || '';
+    document.getElementById('fActEndTime').value = item.endTime || '';
+    document.getElementById('fActRef').value     = item.ref || '';
+    document.getElementById('fActDesc').value    = item.description || '';
+  }
+}
+
+function saveItem() {
+  const type = currentModalType;
+  const dateStart = document.getElementById('fDateStart').value;
+  const dateEnd   = document.getElementById('fDateEnd').value;
+  const link      = document.getElementById('fLink').value;
+  let item = { type, dateStart, dateEnd: dateEnd || null, link, id: editingId || uid() };
+
+  if (type === 'flight') {
+    item.from = document.getElementById('fFlightFrom').value;
+    item.to   = document.getElementById('fFlightTo').value;
+    item.depTime   = document.getElementById('fFlightDepTime').value;
+    item.arrTime   = document.getElementById('fFlightArrTime').value;
+    item.airline   = document.getElementById('fFlightAirline').value;
+    item.flightNum = document.getElementById('fFlightNum').value;
+    if (!item.from && !item.to) { showToast('Please enter a departure or arrival city.'); return; }
+  } else if (type === 'hotel') {
+    item.name         = document.getElementById('fHotelName').value;
+    item.address      = document.getElementById('fHotelAddr').value;
+    item.ref          = document.getElementById('fHotelRef').value;
+    item.checkinTime  = document.getElementById('fHotelCheckinTime').value;
+    item.checkoutTime = document.getElementById('fHotelCheckoutTime').value;
+    if (!item.name) { showToast('Please enter a hotel name.'); return; }
+    // Legacy compat
+    item.checkin  = item.dateStart;
+    item.checkout = item.dateEnd;
+  } else if (type === 'transport') {
+    item.mode    = document.getElementById('fTransMode').value;
+    item.ref     = document.getElementById('fTransRef').value;
+    item.from    = document.getElementById('fTransFrom').value;
+    item.to      = document.getElementById('fTransTo').value;
+    item.depTime = document.getElementById('fTransDepTime').value;
+    item.arrTime = document.getElementById('fTransArrTime').value;
+  } else if (type === 'activity') {
+    item.actType     = document.getElementById('fActType').value;
+    item.name        = document.getElementById('fActName').value;
+    item.time        = document.getElementById('fActTime').value;
+    item.endTime     = document.getElementById('fActEndTime').value;
+    item.ref         = document.getElementById('fActRef').value;
+    item.description = document.getElementById('fActDesc').value;
+    if (!item.name) { showToast('Please enter a name.'); return; }
+  }
+
+  // Validate date order
+  if (item.dateStart && item.dateEnd && item.dateEnd < item.dateStart) {
+    showToast('End date must be on or after start date.'); return;
+  }
+
+  if (editingId) {
+    const idx = state.items.findIndex(i => i.id === editingId);
+    if (idx !== -1) state.items[idx] = item;
+  } else {
+    state.items.push(item);
+  }
+
+  save(); render(); closeModal();
+  showToast(editingId ? 'Item updated!' : 'Item added!');
+}
+
+function deleteItem(id) {
+  state.items = state.items.filter(i => i.id !== id);
+  save(); render(); showToast('Item removed.');
+}
+
+// ── RENDERING ──
+function getItemTime(item) {
+  if (item.type === 'flight')    return item.depTime || '';
+  if (item.type === 'hotel')     return item._role === 'morning' ? (item.checkoutTime || '') : (item.checkinTime || '');
+  if (item.type === 'transport') return item.depTime || '';
+  if (item.type === 'activity')  return item.time || '';
+  return '';
+}
+function getItemSortKey(item) { return getItemTime(item) || (item._role === 'morning' ? '00:00' : item._role === 'evening' ? '23:59' : '99:99'); }
+
+// Build the full sorted list of dates that have items
+function buildDayMap() {
+  const dateSet = new Set();
+  state.items.forEach(item => {
+    itemDates(item).forEach(d => dateSet.add(d));
+    // Hotels also appear on checkout day (morning)
+    const end = itemEndDate(item);
+    if (item.type === 'hotel' && end) dateSet.add(end);
+  });
+  return Array.from(dateSet).sort();
+}
+
+// Get all item appearances for a given date
+function getItemsForDay(date) {
+  const appearances = [];
+  state.items.forEach(item => {
+    const start = itemStartDate(item);
+    const end   = itemEndDate(item);
+    const span  = end && end !== start ? daysBetween(start, end) : 0;
+
+    if (item.type === 'hotel') {
+      // Show on check-in date (and continuation nights) as "staying"
+      const nights = dateRange(start, end ? prevDay(end) : start);
+      if (nights.includes(date)) {
+        appearances.push({ ...item, _role: 'evening', _span: span });
+      }
+      // Show on checkout date as morning
+      if (end && end === date) {
+        appearances.push({ ...item, _role: 'morning', _span: span });
+      }
+    } else {
+      const dates = itemDates(item);
+      if (dates.includes(date)) {
+        appearances.push({ ...item, _span: span, _dayIndex: dates.indexOf(date), _totalDays: dates.length });
+      }
+    }
+  });
+  return appearances;
+}
+
+function prevDay(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  d.setDate(d.getDate() - 1);
+  return d.toISOString().slice(0, 10);
+}
+
+function sortDayItems(items) {
+  return items.sort((a, b) => {
+    if (a._role === 'morning' && b._role !== 'morning') return -1;
+    if (b._role === 'morning' && a._role !== 'morning') return 1;
+    if (a._role === 'evening' && b._role !== 'evening') return 1;
+    if (b._role === 'evening' && a._role !== 'evening') return -1;
+    return getItemSortKey(a).localeCompare(getItemSortKey(b));
+  });
+}
+
+function spanPill(item) {
+  if (!item._span || item._span === 0) return '';
+  if (item.type === 'hotel') return ''; // Hotels have their own date labels
+  const total = item._totalDays || item._span + 1;
+  const idx   = (item._dayIndex || 0) + 1;
+  return `<span class="span-pill">Day ${idx}/${total}</span>`;
+}
+
+function renderItemCard(item) {
+  const link = item.link ? `<div class="item-link">🔗 <a href="${item.link}" target="_blank" rel="noopener">${item.link}</a></div>` : '';
+  const actions = `<span class="item-actions">
+    <button class="edit-btn" onclick="openEditModal('${item.id}')">Edit</button>
+    <button class="delete-btn" onclick="deleteItem('${item.id}')">✕</button>
+  </span>`;
+  const pill = spanPill(item);
+
+  if (item.type === 'flight') {
+    const details = [
+      item.depTime ? `🛫 ${fmt12(item.depTime)}` : '',
+      item.arrTime ? `🛬 ${fmt12(item.arrTime)}` : '',
+      item.airline   ? `✈ ${item.airline}` : '',
+      item.flightNum ? `# ${item.flightNum}` : '',
+    ].filter(Boolean).map(d=>`<span>${d}</span>`).join('');
+    return { html: `<div class="timeline-content flight-card">
+      <div class="item-type-badge badge-flight">✈ Flight</div>
+      <div class="item-name">
+        <span class="item-name-left"><span class="flight-route">${item.from||'?'} <span class="route-arrow">→</span> ${item.to||'?'}</span>${pill}</span>
+        ${actions}</div>
+      <div class="item-detail">${details}</div>${link}</div>`,
+      time: item.depTime, dotClass: 'dot-flight' };
+  }
+
+  if (item.type === 'hotel') {
+    const isMorning = item._role === 'morning';
+    const start = itemStartDate(item), end = itemEndDate(item);
+    const nightCount = start && end ? daysBetween(start, end) : null;
+    const checkinStr  = start ? `Check-in ${fmtDate(start)}${item.checkinTime  ? ' at '+fmt12(item.checkinTime)  : ''}` : '';
+    const checkoutStr = end   ? `Check-out ${fmtDate(end)}${item.checkoutTime ? ' at '+fmt12(item.checkoutTime) : ''}` : '';
+    const details = [
+      isMorning ? checkoutStr : checkinStr,
+      !isMorning && nightCount ? `${nightCount} night${nightCount>1?'s':''}` : '',
+      item.address ? `📍 ${item.address}` : '',
+      item.ref     ? `# ${item.ref}` : '',
+    ].filter(Boolean).map(d=>`<span>${d}</span>`).join('');
+    const label = isMorning ? 'Checking Out' : "Tonight's Hotel";
+    const icon  = isMorning ? '🌅' : '🌙';
+    return { html: `<div class="timeline-content hotel-card ${isMorning?'hotel-morning':'hotel-evening'}">
+      <div class="item-type-badge badge-hotel">🏨 ${label}</div>
+      <div class="item-name"><span class="item-name-left"><span>${icon} ${item.name}</span></span>${actions}</div>
+      <div class="item-detail">${details}</div>${link}</div>`,
+      time: isMorning ? (item.checkoutTime||'') : (item.checkinTime||''), dotClass: isMorning ? 'dot-hotel-morning' : 'dot-hotel' };
+  }
+
+  if (item.type === 'transport') {
+    const modeIcons = { Train:'🚆', Bus:'🚌', Ferry:'⛴', 'Taxi / Rideshare':'🚕', 'Car Rental':'🚗', Shuttle:'🚐', Other:'🚗' };
+    const icon = modeIcons[item.mode] || '🚗';
+    const details = [
+      item.from    ? `From: ${item.from}` : '',
+      item.to      ? `To: ${item.to}` : '',
+      item.depTime ? `🕐 ${fmt12(item.depTime)}` : '',
+      item.arrTime ? `→ ${fmt12(item.arrTime)}` : '',
+      item.ref     ? `# ${item.ref}` : '',
+    ].filter(Boolean).map(d=>`<span>${d}</span>`).join('');
+    const title = item.from && item.to ? `${item.from} → ${item.to}` : (item.mode || 'Transport');
+    return { html: `<div class="timeline-content transport-card">
+      <div class="item-type-badge badge-transport">${icon} ${item.mode||'Transport'}</div>
+      <div class="item-name"><span class="item-name-left"><span>${title}</span>${pill}</span>${actions}</div>
+      <div class="item-detail">${details}</div>${link}</div>`,
+      time: item.depTime, dotClass: 'dot-transport' };
+  }
+
+  if (item.type === 'activity') {
+    const typeIcons = { Restaurant:'🍽', Event:'🎟', Museum:'🏛', Tour:'🗺', Shopping:'🛍', Activity:'🎭', Other:'📌' };
+    const icon = typeIcons[item.actType] || '📌';
+    const timeStr = item.time ? (item.endTime ? `${fmt12(item.time)} – ${fmt12(item.endTime)}` : fmt12(item.time)) : '';
+    const details = [
+      timeStr         ? `🕐 ${timeStr}` : '',
+      item.ref        ? `# ${item.ref}` : '',
+      item.description || '',
+    ].filter(Boolean).map(d=>`<span>${d}</span>`).join('');
+    return { html: `<div class="timeline-content activity-card">
+      <div class="item-type-badge badge-activity">${icon} ${item.actType||'Activity'}</div>
+      <div class="item-name"><span class="item-name-left"><span>${item.name}</span>${pill}</span>${actions}</div>
+      <div class="item-detail">${details}</div>${link}</div>`,
+      time: item.time, dotClass: 'dot-activity' };
+  }
+  return { html: '', time: '', dotClass: '' };
+}
+
+function renderTimeline(sortedItems) {
+  if (!sortedItems.length) return '<div class="no-items">No items for this day yet.</div>';
+  let html = '<div class="timeline">';
+  sortedItems.forEach((item, idx) => {
+    const card = renderItemCard(item);
+    const isLast = idx === sortedItems.length - 1;
+    html += `<div class="timeline-item">
+      <div class="timeline-left">
+        <div class="timeline-dot ${card.dotClass}"></div>
+        ${!isLast ? '<div class="timeline-line"></div>' : ''}
+      </div>
+      <div class="timeline-content-wrap">${card.html}</div>
+    </div>`;
+  });
+  return html + '</div>';
+}
+
+function render() {
+  const dates = buildDayMap();
+
+  document.getElementById('statDays').textContent      = dates.length;
+  document.getElementById('statFlights').textContent   = state.items.filter(i=>i.type==='flight').length;
+  document.getElementById('statHotels').textContent    = state.items.filter(i=>i.type==='hotel').length;
+  document.getElementById('statActivities').textContent= state.items.filter(i=>i.type==='activity').length;
+  document.getElementById('tripSubtitle').textContent  = dates.length > 0
+    ? `${fmtDate(dates[0])} → ${fmtDate(dates[dates.length-1])} · ${state.items.length} item${state.items.length!==1?'s':''}`
+    : `${state.items.length} item${state.items.length!==1?'s':''} · add dates to build your itinerary`;
+
+  const container = document.getElementById('daysContainer');
+
+  if (!dates.length) {
+    container.innerHTML = `<div class="empty-state">
+      <div class="empty-state-icon">🗺️</div>
+      <p>Your itinerary is empty.<br>Add flights, hotels, and activities to get started.</p>
+      <br><button class="btn btn-primary" onclick="openAddModal()">+ Add First Item</button>
+    </div>`; 
+  } else {
+    const openDays = new Set();
+    document.querySelectorAll('.day-card.open').forEach(el => openDays.add(el.dataset.date));
+
+    const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    let html = '<div class="days-section">';
+    dates.forEach((date, i) => {
+      const dayItems = sortDayItems(getItemsForDay(date));
+      const isOpen = openDays.has(date) || (openDays.size === 0 && i === 0);
+      const dow = dayNames[new Date(date+'T00:00:00').getDay()];
+      html += `<div class="day-card ${isOpen?'open':''}" data-date="${date}">
+        <div class="day-header" onclick="toggleDay(this.parentElement)">
+          <div class="day-header-left">
+            <div class="day-badge">Day ${i+1}</div>
+            <div>
+              <div class="day-date">${dow}, ${fmtDate(date)}</div>
+              <div class="day-summary">${summariseDay(dayItems)}</div>
+            </div>
+          </div>
+          <div class="day-header-right">
+            <div class="item-count">${dayItems.length} item${dayItems.length!==1?'s':''}</div>
+            <div class="chevron">▾</div>
+          </div>
+        </div>
+        <div class="day-body"><div class="day-body-inner">${renderTimeline(dayItems)}</div></div>
+      </div>`;
+    });
+    container.innerHTML = html + '</div>';
+  }
+
+  // Unscheduled
+  const unscheduled = state.items.filter(i => !itemStartDate(i));
+  const usSection = document.getElementById('unscheduledSection');
+  const usGrid    = document.getElementById('unscheduledGrid');
+  if (unscheduled.length) {
+    usSection.style.display = 'block';
+    usGrid.innerHTML = unscheduled.map(item => `<div class="unscheduled-card">${renderItemCard(item).html}</div>`).join('');
+  } else {
+    usSection.style.display = 'none';
+  }
+}
+
+function summariseDay(items) {
+  const flights    = items.filter(i=>i.type==='flight');
+  const hotels     = items.filter(i=>i.type==='hotel' && i._role!=='morning');
+  const activities = items.filter(i=>i.type==='activity');
+  const transport  = items.filter(i=>i.type==='transport');
+  const parts = [];
+  if (flights.length)    parts.push(`${flights.length} flight${flights.length>1?'s':''}`);
+  if (hotels.length)     parts.push(hotels[0].name);
+  if (activities.length) parts.push(`${activities.length} activit${activities.length>1?'ies':'y'}`);
+  if (transport.length && !flights.length) parts.push(`${transport.length} transport`);
+  return parts.join(' · ') || 'No items';
+}
+
+function toggleDay(card) { card.classList.toggle('open'); }
+
+// ── EXPORT / IMPORT ──
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const a = Object.assign(document.createElement('a'), {href: URL.createObjectURL(blob), download: (state.tripName||'voyage')+'.json'});
+  a.click(); URL.revokeObjectURL(a.href);
+  showToast('Trip exported!');
+}
+function importData() { document.getElementById('importFile').click(); }
+function handleImport(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => { try { state = JSON.parse(ev.target.result); document.getElementById('tripName').value = state.tripName||''; save(); render(); showToast('Trip imported!'); } catch { showToast('Invalid file.'); } };
+  reader.readAsText(file); e.target.value = '';
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show','success');
+  setTimeout(()=>t.classList.remove('show','success'), 2600);
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+load();
+</script>
+</body>
+</html>
