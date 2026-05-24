@@ -503,9 +503,12 @@ function dateRange(start, end) {
   if (!start) return [];
   const result = [];
   let cur = new Date(start + 'T00:00:00');
-  const last = end ? new Date(end + 'T00:00:00') : cur;
+  const last = end ? new Date(end + 'T00:00:00') : new Date(start + 'T00:00:00');
   while (cur <= last) {
-    result.push(cur.toISOString().slice(0, 10));
+    const y = cur.getFullYear();
+    const m = String(cur.getMonth() + 1).padStart(2, '0');
+    const d = String(cur.getDate()).padStart(2, '0');
+    result.push(`${y}-${m}-${d}`);
     cur.setDate(cur.getDate() + 1);
   }
   return result;
@@ -947,7 +950,7 @@ let syncTimeout = null;
 
 async function syncLoad() {
   try {
-    const res = await fetch(SYNC_URL);
+    const res = await fetch(SYNC_URL, { redirect: 'follow' });
     const remote = await res.json();
     if (remote && remote.items) {
       state = remote;
@@ -965,6 +968,7 @@ async function syncSave() {
   try {
     await fetch(SYNC_URL, {
       method: 'POST',
+      mode: 'no-cors',
       body: JSON.stringify(state),
       headers: { 'Content-Type': 'application/json' }
     });
